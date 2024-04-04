@@ -5,6 +5,13 @@ sudo ./setup_ap.sh
 sudo apt update
 sudo apt upgrade
 
+# Enable I2C
+sudo raspi-config nonint do_i2c 0
+
+# Enable SPI
+sudo raspi-config nonint do_spi 0
+
+
 sudo apt install -y python3-pip hostapd dnsmasq
 python -m venv venv
 source venv/bin/activate
