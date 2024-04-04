@@ -12,7 +12,12 @@ sudo raspi-config nonint do_i2c 0
 sudo raspi-config nonint do_spi 0
 
 
-sudo apt install -y python3-pip hostapd dnsmasq
+sudo apt install -y python3-pip hostapd dnsmasq libgpiod2
+python3 -m pip install --upgrade pip
+
+python3 -m pip install wheel
+
+
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
