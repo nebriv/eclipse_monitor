@@ -8,6 +8,8 @@ sudo apt install -y hostapd dnsmasq
 sudo systemctl stop hostapd
 sudo systemctl stop dnsmasq
 
+sudo systemctl unmask hostapd
+
 # Configure hostapd
 cat <<EOF | sudo tee /etc/hostapd/hostapd.conf
 interface=wlan0
