@@ -22,6 +22,12 @@ log_entries = []
 
 # Custom logging handler to store logs
 class CustomLogHandler(logging.Handler):
+    def __init__(self):
+        super().__init__()
+        # Define the same format as used in basicConfig
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        self.setFormatter(formatter)
+
     def emit(self, record):
         log_entries.append(self.format(record))
         if len(log_entries) > 100:  # Limit log entries to avoid memory overflow
@@ -110,6 +116,7 @@ class Sensor:
 
             try:
                 data_template = f"{measurement},sensor={sensor_name} value={value:.1f} {int(time.time()*1e9)}"
+                logging.debug(f"Posting data: {data_template}")
                 r = requests.post(f"{INFLUXDB_URL}/write?db={DATABASE_NAME}", data=data_template)
 
                 logging.debug(f"Response Code: {r.status_code} - Response Data: {r.text}")
@@ -271,14 +278,14 @@ class SGP40Sensor(Sensor):
         except Exception as e:
             logging.error(f"Error reading from SGP40 sensor: {e}")
 
-class TSL2561Sensor(Sensor):
+class LuxSensor(Sensor):
     def __init__(self):
         super().__init__()
         try:
             self.sensor = adafruit_tsl2561.TSL2561(board.I2C())
             self.initialized = True
         except Exception as e:
-            logging.error(f"Failed to initialize TSL2561 sensor: {e}")
+            logging.error(f"Failed to initialize TSL2561 Lux sensor: {e}")
 
     def read(self):
         if not self.initialized:
@@ -287,7 +294,45 @@ class TSL2561Sensor(Sensor):
             light = self.sensor.lux
             self.add_sample(light)
         except Exception as e:
-            logging.error(f"Error reading from TSL2561 sensor: {e}")
+            logging.error(f"Error reading from TSL2561 Lux sensor: {e}")
+
+class IRSensor(Sensor):
+    def __init__(self):
+        super().__init__()
+        try:
+            self.sensor = adafruit_tsl2561.TSL2561(board.I2C())
+            self.initialized = True
+        except Exception as e:
+            logging.error(f"Failed to initialize TSL2561 IR sensor: {e}")
+
+    def read(self):
+        if not self.initialized:
+            return
+        try:
+            light = self.sensor.infrared
+            self.add_sample(light)
+        except Exception as e:
+            logging.error(f"Error reading from TSL2561 IR sensor: {e}")
+
+class BroadbandSensor(Sensor):
+    def __init__(self):
+        super().__init__()
+        try:
+            self.sensor = adafruit_tsl2561.TSL2561(board.I2C())
+            self.initialized = True
+        except Exception as e:
+            logging.error(f"Failed to initialize TSL2561 Broadband sensor: {e}")
+
+    def read(self):
+        if not self.initialized:
+            return
+        try:
+            light = self.sensor.broadband
+            self.add_sample(light)
+        except Exception as e:
+            logging.error(f"Error reading from TSL2561 Broadband sensor: {e}")
+
+
 
 def main():
     if not ensure_database_exists(INFLUXDB_URL, DATABASE_NAME):
@@ -302,7 +347,9 @@ def main():
         aht_temp_sensor,
         aht_hum_sensor,
         SGP40Sensor(aht_temp_sensor, aht_hum_sensor),
-        TSL2561Sensor(),
+        LuxSensor(),
+        IRSensor(),
+        BroadbandSensor(),
         UVSensor(),
     ]
 
