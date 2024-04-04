@@ -11,7 +11,7 @@ services:
       - "3000:3000"
 
   influxdb:
-    image: influxdb/influxdb
+    image: influxdb
     container_name: influxdb
     restart: always
     volumes:
