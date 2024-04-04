@@ -13,6 +13,31 @@ import adafruit_tsl2561
 # Initialize logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+INFLUXDB_URL = 'http://127.0.0.1:8086'
+DATABASE_NAME = 'sensors'
+
+
+def ensure_database_exists(url, db_name):
+    # Check if database exists
+    response = requests.get(f'{url}/query', params={'q': 'SHOW DATABASES'})
+    if response.status_code != 200:
+        logging.error(f"Error checking databases: {response.text}")
+        return False
+
+    if db_name in response.text:
+        logging.info(f"Database '{db_name}' already exists.")
+        return True
+
+    # Create the database as it does not exist
+    response = requests.post(f'{url}/query', params={'q': f'CREATE DATABASE "{db_name}"'})
+    if response.status_code == 200:
+        logging.info(f"Database '{db_name}' created.")
+        return True
+    else:
+        logging.error(f"Failed to create database '{db_name}': {response.text}")
+        return False
+
+
 class Sensor:
     def __init__(self):
         self.thread = threading.Thread(target=self.run, daemon=True)
@@ -65,7 +90,7 @@ class Sensor:
 
             try:
                 data_template = f"{measurement},sensor={sensor_name} value={value:.1f} {int(time.time()*1e9)}"
-                r = requests.post("http://127.0.0.1:8086/write?db=sensors", data=data_template)
+                r = requests.post(f"{INFLUXDB_URL}/write?db={DATABASE_NAME}", data=data_template)
 
                 logging.debug(f"Response Code: {r.status_code} - Response Data: {r.text}")
                 logging.info(f"{measurement} from {sensor_name} = {value:.1f}")
@@ -193,6 +218,10 @@ class TSL2561Sensor(Sensor):
             logging.error(f"Error reading from TSL2561 sensor: {e}")
 
 def main():
+    if not ensure_database_exists(INFLUXDB_URL, DATABASE_NAME):
+        logging.error("Could not ensure database exists, check InfluxDB and try again.")
+        return
+
     aht_temp_sensor = AHTTemperatureSensor()
     aht_hum_sensor = AHTHumiditySensor()
     sensors = [
