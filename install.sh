@@ -27,9 +27,9 @@ sudo apt-get update
 
 sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-docker compose pull
+sudo docker compose pull
 
-docker compose up -d
+sudo docker compose up -d
 
 sudo cp eclipse-monitor.service /etc/systemd/system/eclipse-monitor.service
 sudo systemctl daemon-reload
