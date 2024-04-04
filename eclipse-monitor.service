@@ -1,0 +1,11 @@
+[Unit]
+Description=Eclipse Data Monitor
+After=network.target
+
+[Service]
+User=ben
+ExecStart=/usr/bin/python3 /home/ben/eclipse_monitor/main.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
