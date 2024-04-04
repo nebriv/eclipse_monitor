@@ -47,3 +47,5 @@ sudo cp eclipse-monitor.service /etc/systemd/system/eclipse-monitor.service
 sudo systemctl daemon-reload
 sudo systemctl enable eclipse-monitor.service
 sudo systemctl start eclipse-monitor.service
+
+source venv/bin/activate
